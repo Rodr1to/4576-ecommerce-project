@@ -11,7 +11,7 @@ import SwiftUI
 struct _576_ecommerce_projectApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            IntroView()
         }
     }
 }
