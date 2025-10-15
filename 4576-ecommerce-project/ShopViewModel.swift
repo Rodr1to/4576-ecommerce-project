@@ -1,58 +1,48 @@
-//
-//  ShopViewModel.swift
-//  4576-ecommerce-project
-//
-//  Created by Rodrigo Valverde on 10/14/2025.
-//
-
 import Foundation
 
-// We use ObservableObject so that SwiftUI can react to its changes.
+
 class ShopViewModel: ObservableObject {
     
-    // @Published notifies the views every time these arrays change.
+    
     @Published var products: [Product]
     @Published var cartItems: [CartItem] = []
     
-    // Sample data as required
+    // datos de ejemplo
     init() {
         self.products = [
-            Product(name: "Kynlee Lip Kit", image: "product1", description: "A beautiful lip kit for all occasions. Long-lasting and vibrant colors.", price: 29.99),
-            Product(name: "Eyeshadow Palette", image: "product2", description: "A versatile eyeshadow palette with 12 amazing shades.", price: 44.50),
-            Product(name: "Foundation Pro", image: "product3", description: "Full coverage foundation with a natural matte finish.", price: 35.00),
-            Product(name: "Blush & Glow", image: "product4", description: "A compact blush that gives a natural and healthy glow.", price: 22.99),
-            Product(name: "Skincare Serum", image: "product5", description: "Hydrating and rejuvenating serum for all skin types.", price: 55.00),
-            Product(name: "Pro Brush Set", image: "product6", description: "A professional set of 5 essential makeup brushes.", price: 49.99)
+            Product(name: "Primer Power Grip", image: "product1", description: "Un primer en gel que hidrata y prepara tu piel para un maquillaje duradero.", price: 10.00),
+            Product(name: "Base Face Colour", image: "product2", description: "Base de maquillaje fluida con acabado luminoso y natural.", price: 38.50),
+            Product(name: "Máscara de Pestañas", image: "product3", description: "Máscara que alarga y da volumen a tus pestañas para una mirada impactante.", price: 28.00),
+            Product(name: "Máscara All-in-One", image: "product4", description: "Fórmula todo en uno que define, alarga y da volumen sin grumos.", price: 15.99),
+            Product(name: "Corrector Camo", image: "product5", description: "Corrector de alta cobertura con acabado mate que dura todo el día.", price: 7.00),
+            Product(name: "Bálsamo Labial", image: "product6", description: "Bálsamo labial con un toque de color que hidrata y suaviza tus labios.", price: 24.00)
         ]
     }
     
-    // --- Functions to interact with the data ---
+    // interaccion con datos
     
-    // Toggles a product's favorite status.
+    // favorito
     func toggleFavorite(for product: Product) {
         if let index = products.firstIndex(where: { $0.id == product.id }) {
             products[index].isFavorite.toggle()
         }
     }
     
-    // Adds a product to the cart.
+    // añadir producto al carrito
     func addToCart(product: Product, quantity: Int = 1) {
-        // Check if the product is already in the cart.
         if let index = cartItems.firstIndex(where: { $0.product.id == product.id }) {
-            // If it is, just increase the quantity.
             cartItems[index].quantity += quantity
         } else {
-            // If not, add it as a new item.
             cartItems.append(CartItem(product: product, quantity: quantity))
         }
     }
     
-    // Removes an item from the cart.
+    // eliminar item del carrito
     func removeFromCart(cartItem: CartItem) {
         cartItems.removeAll { $0.id == cartItem.id }
     }
     
-    // Calculates the total amount for the items in the cart.
+    // calcular el total
     var totalCartAmount: Double {
         cartItems.reduce(0) { $0 + ($1.product.price * Double($1.quantity)) }
     }

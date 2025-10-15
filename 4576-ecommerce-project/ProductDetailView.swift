@@ -1,10 +1,3 @@
-//
-//  ProductDetailView.swift
-//  4576-ecommerce-project
-//
-//  Created by Rodrigo Valverde on 10/14/2025.
-//
-
 import SwiftUI
 
 struct ProductDetailView: View {
@@ -34,7 +27,7 @@ struct ProductDetailView: View {
                 Text(product.description)
                     .foregroundColor(.secondary)
                 
-                // Quantity Control
+                // cantidades
                 HStack {
                     Text("Quantity")
                         .font(.headline)
@@ -52,7 +45,7 @@ struct ProductDetailView: View {
                 }
                 .font(.title)
                 
-                // Add to Cart Button
+                // boton de agregar
                 Button(action: {
                     viewModel.addToCart(product: product, quantity: quantity)
                 }) {
@@ -70,12 +63,11 @@ struct ProductDetailView: View {
         .navigationTitle("Product Details")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            // Favorites button in the navigation bar
+            // favoritos
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button(action: {
                     viewModel.toggleFavorite(for: product)
                 }) {
-                    // We find the current state of the product in the viewModel
                     let isFavorite = viewModel.products.first { $0.id == product.id }?.isFavorite ?? false
                     Image(systemName: isFavorite ? "heart.fill" : "heart")
                         .foregroundColor(isFavorite ? .red : .primary)
@@ -86,8 +78,6 @@ struct ProductDetailView: View {
 }
 
 #Preview {
-    // For the preview, we need a sample product
-    // and a viewModel.
     NavigationView {
         ProductDetailView(product: ShopViewModel().products[0])
             .environmentObject(ShopViewModel())

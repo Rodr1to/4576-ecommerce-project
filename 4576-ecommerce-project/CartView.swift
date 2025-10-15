@@ -1,10 +1,3 @@
-//
-//  CartView.swift
-//  4576-ecommerce-project
-//
-//  Created by Rodrigo Valverde on 10/14/2025.
-//
-
 import SwiftUI
 
 struct CartView: View {
@@ -24,14 +17,15 @@ struct CartView: View {
                             CartItemRow(item: item)
                         }
                         .onDelete { indexSet in
-                            // Allows deleting with a swipe gesture
+                            // borrar con swipe
                             if let index = indexSet.first {
                                 viewModel.removeFromCart(cartItem: viewModel.cartItems[index])
                             }
                         }
                     }
+                    .listStyle(.plain)
                     
-                    // Total Summary
+                    // total
                     VStack(spacing: 15) {
                         HStack {
                             Text("Total")
@@ -62,20 +56,24 @@ struct CartView: View {
     }
 }
 
-// A component for each row in the cart list
 struct CartItemRow: View {
     let item: CartItem
     
     var body: some View {
-        HStack {
+        HStack(spacing: 15) {
             Image(item.product.image)
                 .resizable()
-                .frame(width: 60, height: 60)
+                .scaledToFit()
+                .frame(width: 80, height: 80)
                 .cornerRadius(8)
             
-            VStack(alignment: .leading) {
-                Text(item.product.name).font(.headline)
-                Text("$\(item.product.price, specifier: "%.2f")").font(.subheadline)
+            VStack(alignment: .leading, spacing: 5) {
+                Text(item.product.name)
+                    .font(.headline)
+                
+                Text("$\(item.product.price, specifier: "%.2f")")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
             }
             
             Spacer()
@@ -83,6 +81,7 @@ struct CartItemRow: View {
             Text("Qty: \(item.quantity)")
                 .font(.headline)
         }
+        .padding(.vertical, 8)
     }
 }
 

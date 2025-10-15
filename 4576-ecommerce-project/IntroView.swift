@@ -2,7 +2,6 @@ import SwiftUI
 
 struct IntroView: View {
     var body: some View {
-        
         NavigationView {
             VStack {
                 Spacer()
@@ -15,7 +14,7 @@ struct IntroView: View {
                 Spacer()
                 // boton crear cuenta
                 Button(action: {
-                    print("Boton crear cuenta presionado")
+                    print("Crear cuenta presionado")
                 }) {
                     Text("Crear cuenta")
                         .font(.headline)
@@ -28,7 +27,7 @@ struct IntroView: View {
                 .padding(.horizontal, 24)
                 
                 // boton conectarse
-                NavigationLink(destination: HomeView()) {
+                NavigationLink(destination: MainView().navigationBarHidden(true)) {
                     Text("Conectarse")
                         .font(.headline)
                         .foregroundColor(.blue)
@@ -48,11 +47,11 @@ struct IntroView: View {
             }
             .edgesIgnoringSafeArea(.top)
             .background(Color.white)
-            // ocultar barra de navegacion
             .navigationBarHidden(true)
         }
     }
 }
+
 
 struct IntroView_Previews: PreviewProvider {
     static var previews: some View {

@@ -1,16 +1,8 @@
-//
-//  FavoritesView.swift
-//  4576-ecommerce-project
-//
-//  Created by Rodrigo Valverde on 10/14/2025.
-//
-
 import SwiftUI
 
 struct FavoritesView: View {
     @EnvironmentObject var viewModel: ShopViewModel
     
-    // We create a computed property that filters only the favorite products.
     var favoriteProducts: [Product] {
         viewModel.products.filter { $0.isFavorite }
     }

@@ -1,10 +1,8 @@
 import SwiftUI
 
 struct HomeView: View {
-    // We receive the ViewModel from the environment.
     @EnvironmentObject var viewModel: ShopViewModel
     
-    // Columns for our product grid.
     private let columns: [GridItem] = [
         GridItem(.flexible(), spacing: 16),
         GridItem(.flexible(), spacing: 16)
@@ -14,24 +12,22 @@ struct HomeView: View {
         NavigationView {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
-                    // Top Banner
+                    // banner
                     Image("banner")
                         .resizable()
                         .aspectRatio(contentMode: .fit)
                         .cornerRadius(20)
                         .padding(.horizontal)
                     
-                    // Products section title
+                    // productos
                     Text("Products")
                         .font(.title2)
                         .fontWeight(.bold)
                         .padding(.horizontal)
                     
-                    // Products Grid
+                    // grid
                     LazyVGrid(columns: columns, spacing: 20) {
-                        // We iterate over the products from the ViewModel
                         ForEach(viewModel.products) { product in
-                            // NavigationLink to go to the product detail view.
                             NavigationLink(destination: ProductDetailView(product: product)) {
                                 ProductCard(product: product)
                             }
@@ -47,7 +43,6 @@ struct HomeView: View {
     }
 }
 
-// A component to display each product in the grid.
 struct ProductCard: View {
     @EnvironmentObject var viewModel: ShopViewModel
     let product: Product
@@ -60,7 +55,7 @@ struct ProductCard: View {
                     .aspectRatio(contentMode: .fit)
                     .cornerRadius(12)
                 
-                // Favorites Button
+                // favoritos
                 Button(action: {
                     viewModel.toggleFavorite(for: product)
                 }) {
@@ -85,5 +80,5 @@ struct ProductCard: View {
 }
 
 #Preview {
-    MainView() // We preview from MainView to have the EnvironmentObject available
+    MainView() 
 }
