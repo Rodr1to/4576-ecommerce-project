@@ -1,3 +1,7 @@
+//
+//  CartView.swift
+//  4576-ecommerce-project
+//
 import SwiftUI
 
 struct CartView: View {
@@ -17,7 +21,6 @@ struct CartView: View {
                             CartItemRow(item: item)
                         }
                         .onDelete { indexSet in
-                            // borrar con swipe
                             if let index = indexSet.first {
                                 viewModel.removeFromCart(cartItem: viewModel.cartItems[index])
                             }
@@ -25,7 +28,6 @@ struct CartView: View {
                     }
                     .listStyle(.plain)
                     
-                    // total
                     VStack(spacing: 15) {
                         HStack {
                             Text("Total")
@@ -61,14 +63,19 @@ struct CartItemRow: View {
     
     var body: some View {
         HStack(spacing: 15) {
-            Image(item.product.image)
-                .resizable()
-                .scaledToFit()
-                .frame(width: 80, height: 80)
-                .cornerRadius(8)
+            AsyncImage(url: URL(string: item.product.thumbnail)) { image in
+                image
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 80, height: 80)
+                    .cornerRadius(8)
+            } placeholder: {
+                ProgressView()
+                    .frame(width: 80, height: 80)
+            }
             
             VStack(alignment: .leading, spacing: 5) {
-                Text(item.product.name)
+                Text(item.product.title)
                     .font(.headline)
                 
                 Text("$\(item.product.price, specifier: "%.2f")")

@@ -1,10 +1,21 @@
+//
+//  ProductRepository.swift
+//  4576-ecommerce-project
+//
 import Foundation
 
-struct Product: Identifiable {
-    let id = UUID()
-    var name: String
-    var image: String
-    var description: String
-    var price: Double
+
+struct ProductResponse: Codable {
+    let products: [Product]
+}
+
+struct Product: Codable, Identifiable {
+    let id: Int
+    let title: String
+    let description: String
+    let price: Double
+    let thumbnail: String
+    
+
     var isFavorite: Bool = false
 }

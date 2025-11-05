@@ -1,3 +1,7 @@
+//
+//  HomeView.swift
+//  4576-ecommerce-project
+//
 import SwiftUI
 
 struct HomeView: View {
@@ -12,33 +16,47 @@ struct HomeView: View {
         NavigationView {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
-                    // banner
                     Image("banner")
                         .resizable()
                         .aspectRatio(contentMode: .fit)
                         .cornerRadius(20)
                         .padding(.horizontal)
                     
-                    // productos
                     Text("Products")
                         .font(.title2)
                         .fontWeight(.bold)
                         .padding(.horizontal)
                     
-                    // grid
-                    LazyVGrid(columns: columns, spacing: 20) {
-                        ForEach(viewModel.products) { product in
-                            NavigationLink(destination: ProductDetailView(product: product)) {
-                                ProductCard(product: product)
+                    if viewModel.isLoading {
+                        ProgressView()
+                            .frame(maxWidth: .infinity)
+                    } else if let errorMessage = viewModel.errorMessage {
+                        Text("Error al cargar productos: \(errorMessage)")
+                            .padding()
+                    } else {
+                        LazyVGrid(columns: columns, spacing: 20) {
+                            ForEach(viewModel.products) { product in
+                                NavigationLink(destination: ProductDetailView(product: product)) {
+                                    ProductCard(product: product)
+                                }
                             }
                         }
+                        .padding(.horizontal)
                     }
-                    .padding(.horizontal)
                 }
                 .padding(.vertical)
             }
             .navigationTitle("Welcome!")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                if viewModel.errorMessage != nil {
+                    Button("Retry") {
+                        Task {
+                            await viewModel.loadProducts()
+                        }
+                    }
+                }
+            }
         }
     }
 }
@@ -50,12 +68,16 @@ struct ProductCard: View {
     var body: some View {
         VStack(alignment: .leading) {
             ZStack(alignment: .topTrailing) {
-                Image(product.image)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .cornerRadius(12)
+                AsyncImage(url: URL(string: product.thumbnail)) { image in
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .cornerRadius(12)
+                } placeholder: {
+                    ProgressView()
+                        .frame(height: 150)
+                }
                 
-                // favoritos
                 Button(action: {
                     viewModel.toggleFavorite(for: product)
                 }) {
@@ -68,9 +90,10 @@ struct ProductCard: View {
                 .padding(8)
             }
             
-            Text(product.name)
+            Text(product.title)
                 .font(.headline)
                 .foregroundColor(.primary)
+                .lineLimit(1) 
             
             Text("$\(product.price, specifier: "%.2f")")
                 .font(.subheadline)
@@ -80,5 +103,5 @@ struct ProductCard: View {
 }
 
 #Preview {
-    MainView() 
+    MainView()
 }

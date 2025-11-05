@@ -1,3 +1,7 @@
+//
+//  ProductDetailView.swift
+//  4576-ecommerce-project
+//
 import SwiftUI
 
 struct ProductDetailView: View {
@@ -8,13 +12,18 @@ struct ProductDetailView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                Image(product.image)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .cornerRadius(20)
+                AsyncImage(url: URL(string: product.thumbnail)) { image in
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .cornerRadius(20)
+                } placeholder: {
+                    ProgressView()
+                        .frame(height: 300)
+                }
                 
                 HStack {
-                    Text(product.name)
+                    Text(product.title)
                         .font(.largeTitle)
                         .fontWeight(.bold)
                     Spacer()
@@ -27,7 +36,6 @@ struct ProductDetailView: View {
                 Text(product.description)
                     .foregroundColor(.secondary)
                 
-                // cantidades
                 HStack {
                     Text("Quantity")
                         .font(.headline)
@@ -45,7 +53,6 @@ struct ProductDetailView: View {
                 }
                 .font(.title)
                 
-                // boton de agregar
                 Button(action: {
                     viewModel.addToCart(product: product, quantity: quantity)
                 }) {
@@ -63,7 +70,6 @@ struct ProductDetailView: View {
         .navigationTitle("Product Details")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            // favoritos
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button(action: {
                     viewModel.toggleFavorite(for: product)
@@ -79,7 +85,7 @@ struct ProductDetailView: View {
 
 #Preview {
     NavigationView {
-        ProductDetailView(product: ShopViewModel().products[0])
+        ProductDetailView(product: Product(id: 1, title: "Sample Product", description: "This is a sample description.", price: 99.99, thumbnail: "https://i.dummyjson.com/data/products/1/thumbnail.jpg", isFavorite: false))
             .environmentObject(ShopViewModel())
     }
 }
