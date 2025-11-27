@@ -1,18 +1,26 @@
 import SwiftUI
 
 struct IntroView: View {
+    @State private var isActive = false
+    
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack {
                 Spacer()
                 
-                Image("intro")
+                Image(systemName: "bag.fill")
                     .resizable()
                     .scaledToFit()
-                    .frame(width: 300)
+                    .frame(width: 150)
+                    .foregroundColor(.blue)
+                
+                Text("Bienvenido a ISIL Shop")
+                    .font(.largeTitle)
+                    .bold()
+                    .padding(.top, 20)
                 
                 Spacer()
-                // boton crear cuenta
+                
                 Button(action: {
                     print("Crear cuenta presionado")
                 }) {
@@ -26,8 +34,7 @@ struct IntroView: View {
                 }
                 .padding(.horizontal, 24)
                 
-                // boton conectarse
-                NavigationLink(destination: MainView().navigationBarHidden(true)) {
+                NavigationLink(destination: MainView().navigationBarBackButtonHidden(true)) {
                     Text("Conectarse")
                         .font(.headline)
                         .foregroundColor(.blue)
@@ -45,16 +52,7 @@ struct IntroView: View {
                 
                 Spacer().frame(height: 50)
             }
-            .edgesIgnoringSafeArea(.top)
-            .background(Color.white)
-            .navigationBarHidden(true)
+            .padding()
         }
-    }
-}
-
-
-struct IntroView_Previews: PreviewProvider {
-    static var previews: some View {
-        IntroView()
     }
 }

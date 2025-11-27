@@ -3,89 +3,93 @@
 //  4576-ecommerce-project
 //
 import SwiftUI
+import SwiftData
 
 struct ProductDetailView: View {
-    @EnvironmentObject var viewModel: ShopViewModel
     let product: Product
+    @EnvironmentObject var viewModel: ShopViewModel
+    
+    @Environment(\.modelContext) private var modelContext
+    @Query private var favorites: [FavoriteProduct]
+    
     @State private var quantity: Int = 1
+    
+    var isFavorite: Bool {
+        favorites.contains { $0.id == product.id }
+    }
     
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 AsyncImage(url: URL(string: product.thumbnail)) { image in
-                    image
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .cornerRadius(20)
+                    image.resizable().aspectRatio(contentMode: .fit)
                 } placeholder: {
                     ProgressView()
-                        .frame(height: 300)
                 }
+                .frame(maxHeight: 300)
+                .background(Color.gray.opacity(0.1))
                 
-                HStack {
-                    Text(product.title)
-                        .font(.largeTitle)
-                        .fontWeight(.bold)
-                    Spacer()
-                    Text("$\(product.price, specifier: "%.2f")")
-                        .font(.title2)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.secondary)
-                }
-                
-                Text(product.description)
-                    .foregroundColor(.secondary)
-                
-                HStack {
-                    Text("Quantity")
-                        .font(.headline)
-                    Spacer()
-                    Button(action: { if quantity > 1 { quantity -= 1 } }) {
-                        Image(systemName: "minus.circle")
+                VStack(alignment: .leading, spacing: 15) {
+                    HStack {
+                        Text(product.title).font(.title).bold()
+                        Spacer()
+                        Text(product.formattedPrice).font(.title2).foregroundColor(.blue)
                     }
-                    Text("\(quantity)")
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .frame(width: 50)
-                    Button(action: { quantity += 1 }) {
-                        Image(systemName: "plus.circle")
+                    
+                    Text("Description").font(.headline)
+                    Text(product.description).foregroundColor(.secondary)
+                    
+                    Divider()
+                    
+                    HStack {
+                        Text("Quantity")
+                        Spacer()
+                        Button("-") { if quantity > 1 { quantity -= 1 } }
+                            .font(.title)
+                            .padding(.horizontal)
+                        Text("\(quantity)").font(.title3)
+                        Button("+") { quantity += 1 }
+                            .font(.title)
+                            .padding(.horizontal)
+                    }
+                    
+                    Divider()
+                    
+                    HStack {
+                        Button(action: toggleFavorite) {
+                            Image(systemName: isFavorite ? "heart.fill" : "heart")
+                                .font(.title)
+                                .foregroundColor(isFavorite ? .red : .gray)
+                                .padding()
+                                .background(Color.gray.opacity(0.1))
+                                .clipShape(Circle())
+                        }
+                        
+                        Button(action: {
+                            viewModel.addToCart(product: product, quantity: quantity)
+                        }) {
+                            Text("Add to Cart")
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(Color.blue)
+                                .foregroundColor(.white)
+                                .cornerRadius(12)
+                        }
                     }
                 }
-                .font(.title)
-                
-                Button(action: {
-                    viewModel.addToCart(product: product, quantity: quantity)
-                }) {
-                    Text("Add to Cart")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.blue)
-                        .cornerRadius(15)
-                }
-            }
-            .padding()
-        }
-        .navigationTitle("Product Details")
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button(action: {
-                    viewModel.toggleFavorite(for: product)
-                }) {
-                    let isFavorite = viewModel.products.first { $0.id == product.id }?.isFavorite ?? false
-                    Image(systemName: isFavorite ? "heart.fill" : "heart")
-                        .foregroundColor(isFavorite ? .red : .primary)
-                }
+                .padding()
             }
         }
     }
-}
-
-#Preview {
-    NavigationView {
-        ProductDetailView(product: Product(id: 1, title: "Sample Product", description: "This is a sample description.", price: 99.99, thumbnail: "https://i.dummyjson.com/data/products/1/thumbnail.jpg", isFavorite: false))
-            .environmentObject(ShopViewModel())
+    
+    func toggleFavorite() {
+        if isFavorite {
+            if let fav = favorites.first(where: { $0.id == product.id }) {
+                modelContext.delete(fav)
+            }
+        } else {
+            let newFav = FavoriteProduct(id: product.id, title: product.title, price: product.price, thumbnail: product.thumbnail)
+            modelContext.insert(newFav)
+        }
     }
 }

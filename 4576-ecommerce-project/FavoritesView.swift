@@ -3,62 +3,41 @@
 //  4576-ecommerce-project
 //
 import SwiftUI
+import SwiftData
 
 struct FavoritesView: View {
-    @EnvironmentObject var viewModel: ShopViewModel
-    
-    var favoriteProducts: [Product] {
-        viewModel.products.filter { $0.isFavorite }
-    }
+    @Query var favorites: [FavoriteProduct]
+    @Environment(\.modelContext) private var modelContext
     
     var body: some View {
-        NavigationView {
-            VStack {
-                if favoriteProducts.isEmpty {
-                    Spacer()
-                    Text("You have no favorite items yet.")
-                        .foregroundColor(.secondary)
-                    Spacer()
-                } else {
-                    List {
-                        ForEach(favoriteProducts) { product in
-                            HStack(spacing: 15) {
-                                AsyncImage(url: URL(string: product.thumbnail)) { image in
-                                    image
-                                        .resizable()
-                                        .frame(width: 60, height: 60)
-                                        .cornerRadius(8)
-                                } placeholder: {
-                                    ProgressView()
-                                        .frame(width: 60, height: 60)
-                                }
-                                
-                                VStack(alignment: .leading) {
-                                    Text(product.title).font(.headline)
-                                    Text("$\(product.price, specifier: "%.2f")").font(.subheadline)
-                                }
-                                Spacer()
-                            }
+        NavigationStack {
+            List {
+                ForEach(favorites) { fav in
+                    HStack {
+                        AsyncImage(url: URL(string: fav.thumbnail)) { img in
+                            img.resizable().aspectRatio(contentMode: .fill)
+                        } placeholder: { Color.gray }
+                        .frame(width: 60, height: 60)
+                        .cornerRadius(8)
+                        
+                        VStack(alignment: .leading) {
+                            Text(fav.title).font(.headline)
+                            Text("$\(String(format: "%.2f", fav.price))").foregroundColor(.blue)
                         }
-                        .onDelete(perform: removeFavorite)
                     }
-                    .listStyle(.plain)
+                }
+                .onDelete { indexSet in
+                    for index in indexSet {
+                        modelContext.delete(favorites[index])
+                    }
                 }
             }
             .navigationTitle("Favorites")
+            .overlay {
+                if favorites.isEmpty {
+                    ContentUnavailableView("No Favorites", systemImage: "heart.slash")
+                }
+            }
         }
     }
-    
-
-    private func removeFavorite(at offsets: IndexSet) {
-        let productsToRemove = offsets.map { favoriteProducts[$0] }
-        
-        for product in productsToRemove {
-            viewModel.toggleFavorite(for: product)
-        }
-    }
-}
-
-#Preview {
-    MainView()
 }

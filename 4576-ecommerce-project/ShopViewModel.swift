@@ -3,63 +3,59 @@
 //  4576-ecommerce-project
 //
 import Foundation
+import SwiftUI
 
 @MainActor
 class ShopViewModel: ObservableObject {
-    
-
     @Published var products: [Product] = []
-    @Published var cartItems: [CartItem] = []
-    @Published var isLoading: Bool = false
-    @Published var errorMessage: String?
+    @Published var cart: [Product: Int] = [:] // Producto : Cantidad
+    @Published var isLoading = false
     
-
-    private let productRepository = ProductRepository.shared
+    private let repository = ProductRepository()
     
-
-    init() {
-        Task {
-            await loadProducts()
+    // Cálculo del total
+    var cartTotal: Double {
+        cart.reduce(0) { sum, item in
+            sum + (item.key.price * Double(item.value))
         }
     }
     
-    
-    func loadProducts() async {
+    // Cargar productos
+    func fetchProducts() async {
         isLoading = true
-        errorMessage = nil
-        
         do {
-            self.products = try await productRepository.fetchProducts()
-            self.isLoading = false
+            self.products = try await repository.getProducts()
         } catch {
-            self.errorMessage = error.localizedDescription
-            self.isLoading = false
+            print("Error cargando productos: \(error)")
         }
+        isLoading = false
     }
     
-    func toggleFavorite(for product: Product) {
-        if let index = products.firstIndex(where: { $0.id == product.id }) {
-            products[index].isFavorite.toggle()
-        }
-    }
+    // MARK: - Lógica del Carrito
     
+    // Agregar producto (desde Detalle o Carrito)
     func addToCart(product: Product, quantity: Int = 1) {
-        if let index = cartItems.firstIndex(where: { $0.product.id == product.id }) {
-            cartItems[index].quantity += quantity
+        if let currentQty = cart[product] {
+            cart[product] = currentQty + quantity
         } else {
-            cartItems.append(CartItem(product: product, quantity: quantity))
+            cart[product] = quantity
         }
     }
     
-    func removeFromCart(cartItem: CartItem) {
-        cartItems.removeAll { $0.id == cartItem.id }
+    // Restar uno del carrito
+    func decrementFromCart(product: Product) {
+        guard let currentQty = cart[product] else { return }
+        
+        if currentQty > 1 {
+            cart[product] = currentQty - 1
+        } else {
+            // Si llega a 0, ¿lo borramos? Generalmente sí.
+            cart.removeValue(forKey: product)
+        }
     }
     
-    var totalCartAmount: Double {
-        cartItems.reduce(0) { $0 + ($1.product.price * Double($1.quantity)) }
-    }
-    
-    var favoriteProducts: [Product] {
-        products.filter { $0.isFavorite }
+    // Eliminar completamente
+    func removeFromCart(product: Product) {
+        cart.removeValue(forKey: product)
     }
 }

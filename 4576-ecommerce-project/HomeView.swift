@@ -3,105 +3,133 @@
 //  4576-ecommerce-project
 //
 import SwiftUI
+import SwiftData
+
 
 struct HomeView: View {
+
     @EnvironmentObject var viewModel: ShopViewModel
-    
-    private let columns: [GridItem] = [
-        GridItem(.flexible(), spacing: 16),
-        GridItem(.flexible(), spacing: 16)
-    ]
-    
+
+    let columns = [GridItem(.flexible()), GridItem(.flexible())]
+
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
-                    Image("banner")
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .cornerRadius(20)
-                        .padding(.horizontal)
+                VStack(spacing: 20) {
+                    ZStack(alignment: .bottomLeading) {
+                        Color.blue.opacity(0.8)
+                            .frame(height: 180)
+                            .cornerRadius(12)
+
+                        HStack {
+                            VStack(alignment: .leading, spacing: 5) {
+                                Text("Special Offer")
+                                    .foregroundColor(.white.opacity(0.8))
+                                Text("25% OFF")
+                                    .font(.largeTitle).bold()
+                                    .foregroundColor(.white)
+                                Button("Shop now") { }
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 6)
+                                    .background(Color.white)
+                                    .cornerRadius(15)
+                                    .foregroundColor(.blue)
+                            }
+                            .padding()
+                            
+                            Spacer()
+                        }
+                    }
+                    .padding(.horizontal)
+
                     
-                    Text("Products")
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .padding(.horizontal)
+                    HStack {
+                        Text("Products").font(.title2).bold()
+                        Spacer()
+                    }
+                    .padding(.horizontal)
+
                     
                     if viewModel.isLoading {
                         ProgressView()
-                            .frame(maxWidth: .infinity)
-                    } else if let errorMessage = viewModel.errorMessage {
-                        Text("Error al cargar productos: \(errorMessage)")
-                            .padding()
                     } else {
-                        LazyVGrid(columns: columns, spacing: 20) {
+                        LazyVGrid(columns: columns, spacing: 16) {
                             ForEach(viewModel.products) { product in
-                                NavigationLink(destination: ProductDetailView(product: product)) {
-                                    ProductCard(product: product)
+                                NavigationLink(destination: ProductDetailView(product: product)
+                                    .environmentObject(viewModel)
+                                ) {
+                                    ProductItemView(product: product)
                                 }
+                                .buttonStyle(PlainButtonStyle())
                             }
                         }
                         .padding(.horizontal)
                     }
                 }
-                .padding(.vertical)
             }
-            .navigationTitle("Welcome!")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                if viewModel.errorMessage != nil {
-                    Button("Retry") {
-                        Task {
-                            await viewModel.loadProducts()
-                        }
-                    }
+            .navigationTitle("Home")
+            .task {
+
+                if viewModel.products.isEmpty {
+                    await viewModel.fetchProducts()
                 }
             }
         }
     }
 }
 
-struct ProductCard: View {
-    @EnvironmentObject var viewModel: ShopViewModel
+
+
+struct ProductItemView: View {
     let product: Product
+    
+
+    @Environment(\.modelContext) private var modelContext
+    @Query private var favorites: [FavoriteProduct]
+    
+    var isFavorite: Bool {
+        favorites.contains { $0.id == product.id }
+    }
     
     var body: some View {
         VStack(alignment: .leading) {
             ZStack(alignment: .topTrailing) {
-                AsyncImage(url: URL(string: product.thumbnail)) { image in
-                    image
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .cornerRadius(12)
-                } placeholder: {
-                    ProgressView()
-                        .frame(height: 150)
-                }
+                AsyncImage(url: URL(string: product.thumbnail)) { img in
+                    img.resizable().aspectRatio(contentMode: .fill)
+                } placeholder: { Color.gray.opacity(0.2) }
+                .frame(height: 140)
+                .clipped()
                 
-                Button(action: {
-                    viewModel.toggleFavorite(for: product)
-                }) {
-                    Image(systemName: product.isFavorite ? "heart.fill" : "heart")
-                        .foregroundColor(product.isFavorite ? .red : .primary)
+                Button(action: toggleFavorite) {
+                    Image(systemName: isFavorite ? "heart.fill" : "heart")
                         .padding(8)
-                        .background(.thinMaterial)
+                        .foregroundColor(isFavorite ? .red : .white)
+                        .background(Color.black.opacity(0.3))
                         .clipShape(Circle())
                 }
                 .padding(8)
             }
+            .cornerRadius(10)
             
             Text(product.title)
                 .font(.headline)
-                .foregroundColor(.primary)
-                .lineLimit(1) 
+                .lineLimit(1)
             
-            Text("$\(product.price, specifier: "%.2f")")
+            Text(product.formattedPrice)
                 .font(.subheadline)
-                .foregroundColor(.secondary)
+                .foregroundColor(.gray)
+        }
+        .background(Color(UIColor.systemBackground))
+    }
+    
+    func toggleFavorite() {
+        if isFavorite {
+            if let fav = favorites.first(where: { $0.id == product.id }) {
+                modelContext.delete(fav)
+            }
+        } else {
+            let newFav = FavoriteProduct(id: product.id, title: product.title, price: product.price, thumbnail: product.thumbnail)
+            modelContext.insert(newFav)
         }
     }
-}
-
-#Preview {
-    MainView()
 }

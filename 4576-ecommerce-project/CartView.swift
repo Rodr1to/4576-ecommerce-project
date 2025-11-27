@@ -8,91 +8,82 @@ struct CartView: View {
     @EnvironmentObject var viewModel: ShopViewModel
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack {
-                if viewModel.cartItems.isEmpty {
-                    Spacer()
-                    Text("Your cart is empty.")
-                        .foregroundColor(.secondary)
-                    Spacer()
+                if viewModel.cart.isEmpty {
+                    ContentUnavailableView("Cart Empty", systemImage: "cart")
                 } else {
                     List {
-                        ForEach(viewModel.cartItems) { item in
-                            CartItemRow(item: item)
+                        ForEach(viewModel.cart.keys.sorted(by: { $0.id < $1.id }), id: \.self) { product in
+                            HStack(spacing: 12) {
+                                AsyncImage(url: URL(string: product.thumbnail)) { img in
+                                    img.resizable().aspectRatio(contentMode: .fill)
+                                } placeholder: { Color.gray }
+                                .frame(width: 60, height: 60)
+                                .cornerRadius(8)
+                                
+                                VStack(alignment: .leading) {
+                                    Text(product.title).font(.headline).lineLimit(1)
+                                    Text(product.formattedPrice).foregroundColor(.secondary)
+                                }
+                                
+                                Spacer()
+                                
+                                HStack(spacing: 10) {
+                                    Button(action: {
+                                        viewModel.decrementFromCart(product: product)
+                                    }) {
+                                        Image(systemName: "minus.circle")
+                                            .foregroundColor(.blue)
+                                    }
+                                    .buttonStyle(PlainButtonStyle())
+                                    
+                                    Text("\(viewModel.cart[product] ?? 0)")
+                                        .bold()
+                                        .frame(minWidth: 20)
+                                    
+                                    Button(action: {
+                                        viewModel.addToCart(product: product, quantity: 1)
+                                    }) {
+                                        Image(systemName: "plus.circle")
+                                            .foregroundColor(.blue)
+                                    }
+                                    .buttonStyle(PlainButtonStyle())
+                                }
+                            }
                         }
                         .onDelete { indexSet in
-                            if let index = indexSet.first {
-                                viewModel.removeFromCart(cartItem: viewModel.cartItems[index])
+                            let sortedProducts = viewModel.cart.keys.sorted(by: { $0.id < $1.id })
+                            for index in indexSet {
+                                viewModel.removeFromCart(product: sortedProducts[index])
                             }
                         }
                     }
-                    .listStyle(.plain)
                     
-                    VStack(spacing: 15) {
+                    VStack(spacing: 16) {
                         HStack {
-                            Text("Total")
-                                .font(.title2)
-                                .fontWeight(.semibold)
+                            Text("Total").font(.title2).bold()
                             Spacer()
-                            Text("$\(viewModel.totalCartAmount, specifier: "%.2f")")
-                                .font(.title2)
-                                .fontWeight(.bold)
+                            Text("$\(String(format: "%.2f", viewModel.cartTotal))")
+                                .font(.title2).bold().foregroundColor(.blue)
                         }
                         
                         Button(action: {}) {
-                            Text("Pagar ahora")
+                            Text("Pagar ahora") 
                                 .font(.headline)
-                                .foregroundColor(.white)
                                 .frame(maxWidth: .infinity)
                                 .padding()
                                 .background(Color.blue)
-                                .cornerRadius(15)
+                                .foregroundColor(.white)
+                                .cornerRadius(12)
                         }
                     }
                     .padding()
-                    .background(.thinMaterial)
+                    .background(Color(UIColor.systemBackground))
+                    .shadow(radius: 2)
                 }
             }
-            .navigationTitle("My Cart")
+            .navigationTitle("Cart")
         }
     }
-}
-
-struct CartItemRow: View {
-    let item: CartItem
-    
-    var body: some View {
-        HStack(spacing: 15) {
-            AsyncImage(url: URL(string: item.product.thumbnail)) { image in
-                image
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 80, height: 80)
-                    .cornerRadius(8)
-            } placeholder: {
-                ProgressView()
-                    .frame(width: 80, height: 80)
-            }
-            
-            VStack(alignment: .leading, spacing: 5) {
-                Text(item.product.title)
-                    .font(.headline)
-                
-                Text("$\(item.product.price, specifier: "%.2f")")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-            }
-            
-            Spacer()
-            
-            Text("Qty: \(item.quantity)")
-                .font(.headline)
-        }
-        .padding(.vertical, 8)
-    }
-}
-
-
-#Preview {
-    MainView()
 }
