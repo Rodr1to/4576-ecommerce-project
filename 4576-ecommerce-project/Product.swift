@@ -3,37 +3,34 @@
 //  4576-ecommerce-project
 //
 import Foundation
-import SwiftData
 
-struct ProductResponse: Decodable {
-    let products: [Product]
+struct MovieResponse: Decodable {
+    let results: [Movie]
 }
 
-struct Product: Decodable, Identifiable, Hashable {
+struct Movie: Decodable, Identifiable, Hashable {
     let id: Int
     let title: String
-    let description: String
-    let price: Double
-    let thumbnail: String
-    let images: [String]
+    let overview: String
+    let posterPath: String?
+    let releaseDate: String?
+    let voteAverage: Double
     
-    // Ayuda visual para el precio
-    var formattedPrice: String {
-        return "$\(String(format: "%.2f", price))"
+    enum CodingKeys: String, CodingKey {
+        case id
+        case title
+        case overview
+        case posterPath = "poster_path"
+        case releaseDate = "release_date"
+        case voteAverage = "vote_average"
     }
-}
-
-@Model
-class FavoriteProduct {
-    @Attribute(.unique) var id: Int
-    var title: String
-    var price: Double
-    var thumbnail: String
     
-    init(id: Int, title: String, price: Double, thumbnail: String) {
-        self.id = id
-        self.title = title
-        self.price = price
-        self.thumbnail = thumbnail
+    var fullPosterURL: URL? {
+        guard let path = posterPath else { return nil }
+        return URL(string: "https://image.tmdb.org/t/p/w500\(path)")
+    }
+    
+    var formattedScore: String {
+        return String(format: "%.1f", voteAverage)
     }
 }
